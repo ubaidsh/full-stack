@@ -1,0 +1,47 @@
+<!DOCTYPE html><html lang="en"><head><title>E-Commerce Store</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{--bg:#f5f7fb;--card:#fff;--ink:#14213d;--mut:#5b6785;--line:#dde3ef;--ac:#7c3aed;--ac2:#5b21b6;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0)}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1424;--card:#172038;--ink:#e8ecf7;--mut:#9aa7c7;--line:#26314f}}
+*{box-sizing:inherit}body{margin:0;font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--ac);color:#fff;padding:.9rem 5vw;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}header b{font-size:1.2rem;margin-right:auto}
+main{max-width:1000px;margin:0 auto;padding:1.2rem 5vw 3rem}h2{margin:.2rem 0 .8rem}
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem}.tabs button,.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:.5rem 1rem;border-radius:8px;font:inherit;cursor:pointer}
+.tabs button.on,.btn.p{background:var(--ac);color:#fff;border-color:var(--ac)}.btn.d{color:#c0392b}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1rem;margin-bottom:1rem}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:end}.row>*{flex:1 1 140px}
+input,select{padding:.55rem;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--bg);color:var(--ink);width:100%}
+label{display:grid;gap:.2rem;font-size:.85rem;color:var(--mut)}.tw{overflow-x:auto}table{width:100%;border-collapse:collapse}
+th,td{padding:.5rem;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--mut);font-size:.8rem;text-transform:uppercase}
+.pill{padding:.1rem .6rem;border-radius:99px;font-size:.8rem;background:var(--line)}.ok{background:#d4f4dd;color:#146c2e}.bad{background:#fde0dc;color:#a52a1d}.warn{background:#fff0c2;color:#7a5b00}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.8rem;margin-bottom:1rem}.stats div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:.8rem}.stats b{display:block;font-size:1.5rem;color:var(--ac)}
+.note{color:var(--mut);font-size:.85rem}.hide{display:none!important}
+</style></head><body><header><b>🛍️ Laravel-style E-Commerce Store</b><button class="btn" onclick="tab='Cart';draw()">🛒 Cart (<span id="cc">0</span>)</button></header><main>
+<div class="tabs" id="tabs"></div><div id="view"></div></main>
+<script>
+var P=[{id:1,n:"Wireless Earbuds",c:"Electronics",p:3999,e:"🎧"},{id:2,n:"Smart Watch",c:"Electronics",p:8500,e:"⌚"},{id:3,n:"Running Shoes",c:"Fashion",p:5200,e:"👟"},{id:4,n:"Cotton T-Shirt",c:"Fashion",p:1200,e:"👕"},{id:5,n:"Backpack",c:"Bags",p:2800,e:"🎒"},{id:6,n:"Water Bottle",c:"Home",p:750,e:"🍶"},{id:7,n:"Desk Lamp",c:"Home",p:1850,e:"💡"},{id:8,n:"Laptop Bag",c:"Bags",p:3400,e:"💼"}],
+C={},O=[],tab="Shop",q="",cat="All",oid=5000,ST=["Placed","Packed","Shipped","Delivered"];
+function $(i){return document.getElementById(i)}function rs(n){return "Rs "+Number(n).toLocaleString()}function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function find(id){return P.filter(function(x){return x.id==id})[0]}
+function tot(){return Object.keys(C).reduce(function(a,k){return a+find(k).p*C[k]},0)}
+function draw(){$("cc").textContent=Object.keys(C).reduce(function(a,k){return a+C[k]},0);
+ $("tabs").innerHTML=["Shop","Cart","Track order","Admin"].map(function(x){return '<button class="'+(x==tab?"on":"")+'" onclick="tab=\''+x+'\';draw()">'+x+'</button>'}).join("");
+ $("view").innerHTML={"Shop":shop,"Cart":cart,"Track order":track,"Admin":adm}[tab]()}
+function shop(){var cs=["All"].concat(P.map(function(p){return p.c}).filter(function(v,i,a){return a.indexOf(v)==i}));
+ var l=P.filter(function(p){return(cat=="All"||p.c==cat)&&p.n.toLowerCase().indexOf(q.toLowerCase())>=0});
+ return '<div class="row card"><label>Search<input id="q" value="'+esc(q)+'" oninput="q=this.value;keep()" placeholder="Search products"></label><label>Category<select onchange="cat=this.value;draw()">'+cs.map(function(c){return '<option'+(c==cat?" selected":"")+'>'+c+'</option>'}).join("")+'</select></label></div>'+
+ '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">'+(l.map(function(p){return '<div class="card" style="text-align:center;margin:0"><div style="font-size:3rem">'+p.e+'</div><b>'+p.n+'</b><div class="note">'+p.c+'</div><div style="margin:.4rem 0;color:var(--ac);font-weight:700">'+rs(p.p)+'</div><button class="btn p" onclick="add('+p.id+')">Add to cart</button></div>'}).join("")||'<p class="note">No products found.</p>')+'</div>'}
+function keep(){var v=q;draw();var e=$("q");e.focus();e.setSelectionRange(v.length,v.length)}
+function add(id){C[id]=(C[id]||0)+1;$("cc").textContent=Object.keys(C).reduce(function(a,k){return a+C[k]},0)}
+function chg(id,d){C[id]+=d;if(C[id]<=0)delete C[id];draw()}
+function cart(){var k=Object.keys(C);if(!k.length)return '<div class="card"><p>Your cart is empty.</p></div>';
+ return '<div class="card tw"><table><tr><th>Item</th><th>Qty</th><th>Price</th></tr>'+k.map(function(i){var p=find(i);return '<tr><td>'+p.e+' '+p.n+'</td><td><button class="btn" onclick="chg('+i+',-1)">−</button> '+C[i]+' <button class="btn" onclick="chg('+i+',1)">+</button></td><td>'+rs(p.p*C[i])+'</td></tr>'}).join("")+'<tr><th colspan="2">Total</th><th>'+rs(tot())+'</th></tr></table></div>'+
+ '<div class="card"><h3 style="margin-top:0">Checkout</h3><div class="row"><label>Name<input id="cn"></label><label>Phone<input id="cp"></label><label>Address<input id="ca"></label><button class="btn p" onclick="order()">Place order (COD)</button></div><p id="er" class="note"></p></div>'}
+function order(){var n=$("cn").value.trim(),p=$("cp").value.trim(),a=$("ca").value.trim();if(!n||!p||!a){$("er").textContent="Please fill name, phone and address.";return}
+ var o={id:++oid,n:n,t:tot(),s:0};O.push(o);C={};tab="Track order";draw();$("tr").value=o.id;look()}
+function track(){return '<div class="card"><div class="row"><label>Order number<input id="tr" placeholder="e.g. 5001"></label><button class="btn p" onclick="look()">Track</button></div><div id="res"></div></div>'}
+function look(){var o=O.filter(function(x){return x.id==$("tr").value})[0];$("res").innerHTML=o?'<p><b>Order #'+o.id+'</b> for '+esc(o.n)+' – '+rs(o.t)+'</p><div class="row" style="gap:.3rem">'+ST.map(function(s,i){return '<span class="pill '+(i<=o.s?"ok":"")+'" style="flex:1;text-align:center;padding:.4rem">'+s+'</span>'}).join("")+'</div>':'<p class="note">Order not found.</p>'}
+var adminOk=false;
+function adm(){if(!adminOk)return '<div class="card" style="max-width:340px"><h3 style="margin-top:0">Admin login</h3><label>Password<input id="ap" type="password" value="admin123"></label><br><button class="btn p" onclick="adminOk=true;draw()">Sign in</button></div>';
+ return '<div class="card tw"><h3 style="margin-top:0">Orders</h3>'+(O.length?'<table><tr><th>#</th><th>Customer</th><th>Total</th><th>Status</th><th></th></tr>'+O.map(function(o){return '<tr><td>'+o.id+'</td><td>'+esc(o.n)+'</td><td>'+rs(o.t)+'</td><td>'+ST[o.s]+'</td><td>'+(o.s<3?'<button class="btn" onclick="nx('+o.id+')">Next stage</button>':'')+'</td></tr>'}).join("")+'</table>':'<p class="note">No orders yet. Place one from the Shop.</p>')+'</div>'}
+function nx(id){O.filter(function(o){return o.id==id})[0].s++;draw()}
+draw();
+</script></body></html>
