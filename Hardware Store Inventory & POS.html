@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="en"><head><title>Hardware Store Inventory & POS</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{--bg:#f5f7fb;--card:#fff;--ink:#14213d;--mut:#5b6785;--line:#dde3ef;--ac:#d9730d;--ac2:#a85609;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0)}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1424;--card:#172038;--ink:#e8ecf7;--mut:#9aa7c7;--line:#26314f}}
+*{box-sizing:inherit}body{margin:0;font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--ac);color:#fff;padding:.9rem 5vw;display:flex;align-items:center;gap:1rem;flex-wrap:wrap}header b{font-size:1.2rem;margin-right:auto}
+main{max-width:1000px;margin:0 auto;padding:1.2rem 5vw 3rem}h2{margin:.2rem 0 .8rem}
+.tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem}.tabs button,.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:.5rem 1rem;border-radius:8px;font:inherit;cursor:pointer}
+.tabs button.on,.btn.p{background:var(--ac);color:#fff;border-color:var(--ac)}.btn.d{color:#c0392b}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:1rem;margin-bottom:1rem}
+.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:end}.row>*{flex:1 1 140px}
+input,select{padding:.55rem;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--bg);color:var(--ink);width:100%}
+label{display:grid;gap:.2rem;font-size:.85rem;color:var(--mut)}.tw{overflow-x:auto}table{width:100%;border-collapse:collapse}
+th,td{padding:.5rem;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--mut);font-size:.8rem;text-transform:uppercase}
+.pill{padding:.1rem .6rem;border-radius:99px;font-size:.8rem;background:var(--line)}.ok{background:#d4f4dd;color:#146c2e}.bad{background:#fde0dc;color:#a52a1d}.warn{background:#fff0c2;color:#7a5b00}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.8rem;margin-bottom:1rem}.stats div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:.8rem}.stats b{display:block;font-size:1.5rem;color:var(--ac)}
+.note{color:var(--mut);font-size:.85rem}.hide{display:none!important}
+</style></head><body><header><b>🔧 Hardware Store Inventory &amp; POS</b><span class="note" style="color:#fff">Demo data, resets on reload</span></header><main>
+<div class="stats" id="stats"></div><div class="tabs" id="tabs"></div><div id="view"></div></main>
+<div id="inv" class="hide"></div>
+<script>
+var P=[{id:1,name:"Hammer 16oz",price:850,stock:25,min:10},{id:2,name:"Screwdriver Set",price:1200,stock:8,min:10},{id:3,name:"Cement 50kg Bag",price:1350,stock:60,min:20},{id:4,name:"PVC Pipe 1in",price:420,stock:4,min:15},{id:5,name:"Wall Paint 4L",price:3200,stock:18,min:6},{id:6,name:"Electric Drill",price:7800,stock:5,min:3}],
+C={},Sales=[],Sup=[{n:"Karachi Traders",item:"Tools",ph:"0300-1112223"},{n:"Al-Madina Cement",item:"Cement",ph:"0321-4445556"}],tab="Billing",sid=1000;
+function $(i){return document.getElementById(i)}function rs(n){return "Rs "+Number(n).toLocaleString()}
+function low(){return P.filter(function(p){return p.stock<=p.min})}
+function total(){return Object.keys(C).reduce(function(a,k){var p=P.filter(function(x){return x.id==k})[0];return a+p.price*C[k]},0)}
+function draw(){$("tabs").innerHTML=["Billing","Inventory","Sales report","Suppliers"].map(function(x){return '<button class="'+(x==tab?"on":"")+'" onclick="tab=\''+x+'\';draw()">'+x+(x=="Inventory"&&low().length?' ⚠️':'')+'</button>'}).join("");
+ var td=new Date().toDateString(),ts=Sales.filter(function(s){return s.day==td}).reduce(function(a,s){return a+s.total},0);
+ $("stats").innerHTML='<div><b>'+P.length+'</b>Products</div><div><b>'+low().length+'</b>Low stock alerts</div><div><b>'+rs(ts)+'</b>Sales today</div>';
+ $("view").innerHTML={"Billing":bill,"Inventory":inv,"Sales report":rep,"Suppliers":sup}[tab]()}
+function bill(){return '<div class="card tw"><table><tr><th>Product</th><th>Price</th><th>Stock</th><th></th></tr>'+P.map(function(p){return '<tr><td>'+p.name+'</td><td>'+rs(p.price)+'</td><td>'+p.stock+'</td><td><button class="btn" '+((C[p.id]||0)>=p.stock?'disabled':'')+' onclick="addc('+p.id+')">Add</button></td></tr>'}).join("")+'</table></div>'+
+ '<div class="card"><h3 style="margin-top:0">Current bill</h3>'+(Object.keys(C).length?Object.keys(C).map(function(k){var p=P.filter(function(x){return x.id==k})[0];return '<div class="row" style="justify-content:space-between"><span>'+p.name+' × '+C[k]+'</span><b style="text-align:right">'+rs(p.price*C[k])+'</b></div>'}).join("")+'<hr><div class="row"><label>Customer<input id="cu" placeholder="Walk-in"></label><b style="font-size:1.3rem">Total '+rs(total())+'</b><button class="btn p" onclick="pay()">Complete sale &amp; print invoice</button></div>':'<p class="note">No items yet. Add products above.</p>')+'</div>'}
+function addc(id){C[id]=(C[id]||0)+1;draw()}
+function pay(){var items=Object.keys(C).map(function(k){var p=P.filter(function(x){return x.id==k})[0];p.stock-=C[k];return {n:p.name,q:C[k],t:p.price*C[k]}});
+ var s={no:"INV-"+(++sid),day:new Date().toDateString(),who:$("cu").value||"Walk-in",items:items,total:total()};Sales.push(s);C={};
+ var h='<div class="card"><h2>🧾 Invoice '+s.no+'</h2><p>Customer: '+s.who+'<br>'+new Date().toLocaleString()+'</p><table>'+items.map(function(i){return '<tr><td>'+i.n+' × '+i.q+'</td><td>'+rs(i.t)+'</td></tr>'}).join("")+'<tr><th>Total</th><th>'+rs(s.total)+'</th></tr></table><br><button class="btn p" onclick="window.print()">Print</button> <button class="btn" onclick="draw()">Back to billing</button></div>';
+ $("view").innerHTML=h;$("tabs").innerHTML="";$("stats").innerHTML=""}
+function inv(){return (low().length?'<div class="card warn" style="background:#fff0c2;color:#5b4300">⚠️ Low stock: '+low().map(function(p){return p.name+" ("+p.stock+")"}).join(", ")+'</div>':'')+'<div class="card tw"><table><tr><th>Product</th><th>Stock</th><th>Min</th><th>Status</th><th></th></tr>'+P.map(function(p){var l=p.stock<=p.min;return '<tr><td>'+p.name+'</td><td>'+p.stock+'</td><td>'+p.min+'</td><td><span class="pill '+(l?"bad":"ok")+'">'+(l?"Low":"OK")+'</span></td><td><button class="btn" onclick="rst('+p.id+')">+10 restock</button></td></tr>'}).join("")+'</table></div>'+
+ '<div class="card"><div class="row"><label>New product<input id="np"></label><label>Price<input id="pr" type="number"></label><label>Stock<input id="st" type="number"></label><button class="btn p" onclick="newp()">Add product</button></div></div>'}
+function rst(id){P.filter(function(p){return p.id==id})[0].stock+=10;draw()}
+function newp(){var n=$("np").value.trim();if(!n)return;P.push({id:P.length+10,name:n,price:+$("pr").value||0,stock:+$("st").value||0,min:5});draw()}
+function rep(){var by={};Sales.forEach(function(s){by[s.day]=(by[s.day]||0)+s.total});return '<div class="card tw"><h3 style="margin-top:0">Daily sales</h3>'+(Sales.length?'<table><tr><th>Date</th><th>Invoices</th><th>Total</th></tr>'+Object.keys(by).map(function(d){return '<tr><td>'+d+'</td><td>'+Sales.filter(function(s){return s.day==d}).length+'</td><td>'+rs(by[d])+'</td></tr>'}).join("")+'</table>':'<p class="note">No sales yet. Complete a sale in Billing.</p>')+'</div>'+
+ '<div class="card tw"><h3 style="margin-top:0">Monthly total</h3><b style="font-size:1.4rem">'+rs(Sales.reduce(function(a,s){return a+s.total},0))+'</b></div>'}
+function sup(){return '<div class="card tw"><table><tr><th>Supplier</th><th>Supplies</th><th>Phone</th></tr>'+Sup.map(function(s){return '<tr><td>'+s.n+'</td><td>'+s.item+'</td><td>'+s.ph+'</td></tr>'}).join("")+'</table></div>'}
+draw();
+</script></body></html>
